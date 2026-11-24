@@ -6,9 +6,15 @@ local M = {}
 local NS = vim.api.nvim_create_namespace('typingspeed')
 local GROUP = 'typingspeed'
 
+-- Deletion key -> maximum characters subtracted per press. Single-character keys are capped
+-- at 1, as in a typing trainer: one <BS> through 'softtabstop'/'smarttab' indentation
+-- removes several spaces that were typed with a single <Tab> or inserted by autoindent.
 local DELETE_KEYS = {}
-for _, k in ipairs({ '<BS>', '<C-H>', '<C-W>', '<C-U>', '<Del>' }) do
-  DELETE_KEYS[vim.keycode(k)] = true
+for _, k in ipairs({ '<BS>', '<C-H>', '<Del>' }) do
+  DELETE_KEYS[vim.keycode(k)] = 1
+end
+for _, k in ipairs({ '<C-W>', '<C-U>' }) do
+  DELETE_KEYS[vim.keycode(k)] = math.huge
 end
 
 local ADD_KEYS = {}
@@ -70,13 +76,14 @@ local function add(t, delta)
   end
 end
 
-local function snapshot()
+local function snapshot(limit)
   return {
     buf = vim.api.nvim_get_current_buf(),
     row = vim.api.nvim_win_get_cursor(0)[1],
     chars = vim.fn.strchars(vim.api.nvim_get_current_line()),
     lines = vim.api.nvim_buf_line_count(0),
     t = state.clock(),
+    limit = limit,
   }
 end
 
@@ -96,7 +103,7 @@ local function flush()
   if joined > 0 and (row == p.row - joined or row == p.row) then
     deleted = joined -- removed line breaks: <BS> at line start or <Del> at line end
   elseif joined == 0 and row == p.row then
-    deleted = math.max(0, p.chars - vim.fn.strchars(vim.api.nvim_get_current_line()))
+    deleted = math.min(p.limit, math.max(0, p.chars - vim.fn.strchars(vim.api.nvim_get_current_line())))
   else
     return
   end
@@ -107,7 +114,7 @@ end
 
 tick = vim.schedule_wrap(guard(function()
   flush()
-  vim.cmd.redrawstatus()
+  vim.cmd.redrawstatus({ bang = true })
   if state.meter:empty(state.clock()) then
     state.timer:stop()
   end
@@ -128,8 +135,9 @@ local function on_key(key, typed)
   if not (state.user_insert and in_insert() and eligible()) then
     return
   end
-  if DELETE_KEYS[key] then
-    state.pending = snapshot()
+  local limit = DELETE_KEYS[key]
+  if limit then
+    state.pending = snapshot(limit)
   elseif ADD_KEYS[key] then
     add(state.clock(), 1)
   end

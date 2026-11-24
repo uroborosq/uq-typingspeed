@@ -105,13 +105,63 @@ return {
       table.insert(messages, msg)
     end
     local tracker = require('typingspeed.tracker')
-    tracker.start({ window_ms = 10000, warmup_ms = 2000, clock = function() error('boom') end })
-    h.type('iab<Esc>')
-    vim.wait(100, function() return #messages > 0 end)
+    local ok, err = pcall(function()
+      tracker.start({ window_ms = 10000, warmup_ms = 2000, clock = function() error('boom') end })
+      h.type('iab<Esc>')
+      vim.wait(100, function() return #messages > 0 end)
+    end)
     vim.notify = orig_notify
+    if not ok then
+      error(err, 0)
+    end
     h.eq(1, #messages)
     h.eq(1, messages[1]:find('typingspeed: disabled after error', 1, true))
     h.eq(nil, tracker.rate())
+    h.eq(false, (pcall(vim.api.nvim_get_autocmds, { group = 'typingspeed' })))
+  end },
+
+  { '<BS> through softtabstop indentation subtracts one', function()
+    local tracker = start()
+    vim.bo.expandtab = true
+    vim.bo.shiftwidth = 4
+    vim.bo.softtabstop = 4
+    h.type('i<Tab><BS>x<Esc>')
+    h.eq(1, tracker.net())
+    h.eq({ 'x' }, vim.api.nvim_buf_get_lines(0, 0, -1, false))
+  end },
+
+  { '<C-H> subtracts one', function()
+    local tracker = start()
+    h.type('iabc<C-H><Esc>')
+    h.eq(2, tracker.net())
+  end },
+
+  { '<C-U> through the default mapping subtracts the deleted text', function()
+    local tracker = start()
+    h.type('iab cd<C-U>x<Esc>')
+    h.eq(1, tracker.net())
+  end },
+
+  { 'keys reach the buffer unchanged', function()
+    start()
+    h.type('iabc<BS>d<Esc>')
+    h.eq({ 'abd' }, vim.api.nvim_buf_get_lines(0, 0, -1, false))
+  end },
+
+  { 'restarting does not double count', function()
+    local tracker = start()
+    tracker.start({ window_ms = 10000, warmup_ms = 2000, clock = function() return 0 end })
+    h.type('iabc<BS><Esc>')
+    h.eq(2, tracker.net())
+  end },
+
+  { 'nothing is counted after stop()', function()
+    local tracker = start()
+    tracker.stop()
+    h.type('iabc<Esc>')
+    h.eq(0, tracker.net())
+    h.eq(nil, tracker.rate())
+    h.eq({ 'abc' }, vim.api.nvim_buf_get_lines(0, 0, -1, false))
   end },
 
   { 'rate() is nil before start', function()
