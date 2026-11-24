@@ -50,5 +50,8 @@ return {
     h.raises('unit:', function()
       require('typingspeed').setup({ unit = 'foo' })
     end)
+    h.raises('window:', function()
+      require('typingspeed').setup({ window = 1 })
+    end)
   end },
 }

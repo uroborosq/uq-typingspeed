@@ -73,6 +73,7 @@ The speed is shown after 2 seconds of typing. During a pause it decreases, and a
   the value is slightly lower in that case.
 - Deleting text that was inserted without typing (completion, snippets, abbreviations) is still subtracted.
 - Replace mode is not counted, and the first character typed into a snippet placeholder (Select mode) is not counted.
+- Deletions spanning several lines (other than joining two lines) are ignored.
 
 ## Development
 

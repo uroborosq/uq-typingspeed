@@ -161,7 +161,7 @@ require('typingspeed').status() --> "62 wpm" | "310 cpm" | ""
 Внешних зависимостей нет. `tests/run.lua` загружает файлы `tests/*_spec.lua`, выполняет
 функции-тесты в `pcall`, печатает результат по каждому тесту и завершает процесс с кодом 1,
 если хотя бы один тест не пройден. Запуск: `make test`
-(`nvim --headless --clean -u NONE --cmd 'set rtp^=.' -l tests/run.lua`).
+(`nvim --headless --clean --cmd 'set rtp^=.' -l tests/run.lua`).
 
 **meter_spec.lua** (время задаётся вручную):
 - пустая очередь → `nil`;
