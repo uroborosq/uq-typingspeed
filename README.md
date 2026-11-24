@@ -24,7 +24,7 @@ Or call `setup()` yourself:
 
 ```lua
 require('typingspeed').setup({
-  unit = 'wpm', -- 'wpm' | 'cpm'
+  unit = 'wpm', -- 'wpm' | 'cpm' | { 'wpm', 'cpm' }
   window = 10,  -- sliding window length in seconds, >= 3
 })
 ```
@@ -33,6 +33,9 @@ require('typingspeed').setup({
 
 `require('typingspeed').status()` returns `"62 wpm"` (or `"310 cpm"`), or `""` when there is
 nothing to show.
+
+To show both units at once, pass a list: `unit = { 'wpm', 'cpm' }` gives `"62 wpm / 310 cpm"`.
+The units are shown in the order of the list.
 
 lualine:
 

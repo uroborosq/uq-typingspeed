@@ -13,8 +13,27 @@ return {
 
   { 'resolve() rejects unknown unit', function()
     h.reset()
-    h.raises("unit: expected 'wpm' or 'cpm', got foo", function()
+    h.raises("unit: expected 'wpm' or 'cpm', or a non-empty list of them, got foo", function()
       require('typingspeed.config').resolve({ unit = 'foo' })
+    end)
+  end },
+
+  { 'resolve() accepts a list of units', function()
+    h.reset()
+    h.eq({ unit = { 'wpm', 'cpm' }, window = 10 }, require('typingspeed.config').resolve({ unit = { 'wpm', 'cpm' } }))
+  end },
+
+  { 'resolve() rejects a list with an unknown unit', function()
+    h.reset()
+    h.raises("unit: expected 'wpm' or 'cpm', or a non-empty list of them", function()
+      require('typingspeed.config').resolve({ unit = { 'wpm', 'foo' } })
+    end)
+  end },
+
+  { 'resolve() rejects an empty list of units', function()
+    h.reset()
+    h.raises('unit: expected', function()
+      require('typingspeed.config').resolve({ unit = {} })
     end)
   end },
 

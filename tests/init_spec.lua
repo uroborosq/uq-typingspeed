@@ -38,6 +38,20 @@ return {
     h.eq('330 cpm', require('typingspeed').status())
   end },
 
+  { 'status() reports several units in the configured order', function()
+    local set_time = setup({ unit = { 'wpm', 'cpm' } })
+    h.type('i' .. string.rep('a', 55) .. '<Esc>')
+    set_time(10000)
+    h.eq('66 wpm / 330 cpm', require('typingspeed').status())
+  end },
+
+  { 'status() with a single-element list matches the string form', function()
+    local set_time = setup({ unit = { 'cpm' } })
+    h.type('i' .. string.rep('a', 55) .. '<Esc>')
+    set_time(10000)
+    h.eq('330 cpm', require('typingspeed').status())
+  end },
+
   { 'status() uses the configured window', function()
     local set_time = setup({ window = 3 })
     h.type('iabc<Esc>')
